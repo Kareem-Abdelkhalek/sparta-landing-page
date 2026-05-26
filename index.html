@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPARTA GYM — CAIRO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Barlow:wght@300;400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root{--black:#080808;--deep:#0f0f0f;--panel:#141414;--orange:#FF6200;--gold:#C9A84C;--gold-light:#e2c06a;--white:#f5f0eb;--muted:#6a6460;--border:rgba(201,168,76,0.15);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{background:var(--black);color:var(--white);font-family:'Barlow Condensed',sans-serif;overflow-x:hidden;cursor:none;}
+
+/* CURSOR — hidden on touch devices */
+#cursor,#cursor-ring{display:none;}
+@media(hover:hover) and (pointer:fine){
+  #cursor{width:12px;height:12px;background:var(--orange);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);display:block;}
+  #cursor-ring{width:36px;height:36px;border:1px solid var(--gold);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:0.6;display:block;}
+  body{cursor:none;}
+}
+
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");opacity:0.025;pointer-events:none;z-index:9000;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:20px 24px;background:linear-gradient(to bottom,rgba(8,8,8,0.95),transparent);transition:padding 0.3s,background 0.3s;}
+nav.scrolled{background:rgba(8,8,8,0.97);padding:14px 24px;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.15em;color:var(--white);}
+.nav-logo span{color:var(--orange);}
+.nav-cta{background:var(--orange);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;padding:10px 20px;text-decoration:none;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s;}
+.nav-cta:hover{background:var(--gold);}
+
+/* HERO */
+#hero{position:relative;height:100svh;min-height:700px;display:flex;flex-direction:column;justify-content:flex-end;padding:0 24px 60px;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(255,98,0,.18) 0%,transparent 70%),radial-gradient(ellipse 60% 80% at 80% 80%,rgba(201,168,76,.08) 0%,transparent 60%),var(--black);}
+.hero-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;opacity:.28;filter:grayscale(25%) contrast(1.15) brightness(.85);mix-blend-mode:luminosity;z-index:0;}
+.hero-bg-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,1) 0%,rgba(8,8,8,.6) 40%,rgba(8,8,8,.3) 100%);z-index:1;}
+#ember-canvas{position:absolute;inset:0;pointer-events:none;z-index:2;}
+.ember-lines{position:absolute;inset:0;overflow:hidden;z-index:2;}
+.ember-line{position:absolute;width:1px;background:linear-gradient(to bottom,transparent,var(--orange),transparent);animation:ember-rise linear infinite;opacity:0;}
+@keyframes ember-rise{0%{transform:translateY(100vh);opacity:0;}10%{opacity:1;}90%{opacity:.6;}100%{transform:translateY(-20vh);opacity:0;}}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;opacity:0;margin-bottom:12px;position:relative;z-index:3;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(4.5rem,18vw,9rem);line-height:.88;letter-spacing:.02em;position:relative;z-index:3;}
+.hero-title .line{display:block;overflow:hidden;}
+.hero-title .line span{display:block;transform:translateY(110%);}
+.hero-title .accent{color:var(--orange);}
+.hero-title .gold{color:var(--gold);}
+.hero-divider{width:0;height:2px;background:linear-gradient(to right,var(--orange),var(--gold));margin:20px 0;position:relative;z-index:3;}
+.hero-sub{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:1rem;letter-spacing:.12em;color:rgba(245,240,235,.6);text-transform:uppercase;opacity:0;position:relative;z-index:3;max-width:340px;line-height:1.6;}
+.hero-actions{display:flex;gap:14px;margin-top:28px;position:relative;z-index:3;opacity:0;flex-wrap:wrap;}
+.btn-primary{background:var(--orange);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;padding:16px 28px;text-decoration:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{background:var(--gold);transform:translateY(-2px);}
+.btn-primary svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;flex-shrink:0;}
+.btn-ghost{border:1px solid var(--gold);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;padding:16px 28px;text-decoration:none;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .25s;}
+.btn-ghost:hover{background:var(--gold);color:#000;}
+.hero-scroll-hint{position:absolute;bottom:28px;right:24px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:3;}
+.hero-scroll-hint span{font-size:.6rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;writing-mode:vertical-rl;}
+.scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--orange),transparent);animation:scroll-pulse 2s ease-in-out infinite;}
+@keyframes scroll-pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+
+/* STATS */
+#stats{background:var(--panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 24px;display:grid;grid-template-columns:repeat(3,1fr);position:relative;overflow:hidden;}
+#stats::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,98,0,.05) 0%,transparent 50%);}
+.stat-item{text-align:center;padding:0 12px;border-right:1px solid var(--border);}
+.stat-item:last-child{border-right:none;}
+.stat-number{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,6vw,2.8rem);line-height:1;color:var(--orange);display:block;}
+.stat-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:4px;display:block;}
+
+/* SECTIONS */
+section{padding:80px 24px;position:relative;}
+.section-eyebrow{font-size:.65rem;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.section-eyebrow::before{content:'';display:block;width:28px;height:1px;background:var(--gold);}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,10vw,5rem);line-height:.92;letter-spacing:.02em;margin-bottom:20px;}
+.section-title .o{color:var(--orange);}
+.section-title .g{color:var(--gold);}
+.reveal-block{overflow:hidden;}
+
+/* MANIFESTO */
+#manifesto{background:var(--deep);padding:80px 24px;position:relative;overflow:hidden;}
+#manifesto::before{content:'ΣΠΑΡΤΗ';position:absolute;font-family:'Bebas Neue',sans-serif;font-size:22vw;color:rgba(255,98,0,.04);top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;letter-spacing:.1em;z-index:0;}
+.manifesto-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.08;filter:grayscale(50%) contrast(1.2);z-index:0;}
+.manifesto-content{position:relative;z-index:1;}
+.manifesto-quote{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,7vw,3.5rem);line-height:1.1;letter-spacing:.04em;}
+.manifesto-quote .highlight{color:var(--orange);}
+.manifesto-body{font-family:'Barlow',sans-serif;font-weight:300;font-size:.95rem;line-height:1.8;color:rgba(245,240,235,.55);margin-top:24px;max-width:500px;}
+.manifesto-tag{margin-top:32px;display:flex;align-items:center;gap:14px;}
+.manifesto-tag-line{width:40px;height:1px;background:var(--orange);flex-shrink:0;}
+.manifesto-tag-text{font-size:.65rem;letter-spacing:.35em;text-transform:uppercase;color:var(--orange);font-weight:700;}
+
+/* SERVICES */
+#services{background:var(--black);}
+.services-grid{margin-top:40px;display:grid;grid-template-columns:1fr;gap:2px;}
+.service-card{background:var(--panel);padding:28px 24px;border-left:2px solid transparent;transition:border-color .3s,background .3s;position:relative;overflow:hidden;cursor:default;}
+.service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,98,0,.06) 0%,transparent 60%);opacity:0;transition:opacity .3s;}
+.service-card:hover{border-left-color:var(--orange);}
+.service-card:hover::before{opacity:1;}
+.service-icon{width:36px;height:36px;margin-bottom:16px;display:block;color:var(--orange);}
+.service-icon svg{width:36px;height:36px;stroke:currentColor;stroke-width:1.5;fill:none;}
+.service-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.06em;color:var(--white);margin-bottom:8px;}
+.service-desc{font-family:'Barlow',sans-serif;font-weight:300;font-size:.85rem;color:var(--muted);line-height:1.6;}
+.service-tag{position:absolute;top:24px;right:24px;font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);opacity:.6;}
+
+/* GALLERY */
+#gallery{background:var(--deep);padding:80px 0;overflow:hidden;}
+#gallery .inner{padding:0 24px;}
+.gallery-intro{font-family:'Barlow',sans-serif;font-weight:300;font-size:.9rem;color:var(--muted);margin-top:12px;line-height:1.7;max-width:400px;}
+.gallery-track{margin-top:40px;display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:0 24px;}
+.gallery-item{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--panel);cursor:pointer;}
+.gallery-item.tall{grid-row:span 2;aspect-ratio:auto;}
+.gfx{width:100%;height:100%;display:block;position:absolute;inset:0;object-fit:cover;object-position:center;transition:transform .6s ease;}
+.gallery-item:hover .gfx{transform:scale(1.06);}
+.g-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,8,.85) 0%,rgba(8,8,8,.1) 55%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:16px;transition:background .35s;z-index:2;}
+.gallery-item:hover .g-overlay{background:linear-gradient(to top,rgba(255,98,0,.65) 0%,rgba(8,8,8,.25) 60%,transparent 100%);}
+.g-label{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.08em;color:var(--white);}
+.g-sub{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-top:2px;}
+.g-badge{position:absolute;top:12px;left:12px;background:var(--orange);color:#000;font-size:.55rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:4px 8px;clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);z-index:3;}
+
+/* TESTIMONIALS */
+#testimonials{background:var(--black);padding:80px 24px;}
+.testi-grid{margin-top:40px;display:flex;flex-direction:column;gap:16px;}
+.testi-card{background:var(--panel);border:1px solid var(--border);padding:24px;position:relative;}
+.testi-card::before{content:'"';position:absolute;top:12px;right:20px;font-family:'Bebas Neue',sans-serif;font-size:5rem;color:var(--orange);opacity:.12;line-height:1;}
+.testi-stars{color:var(--gold);font-size:.75rem;letter-spacing:2px;margin-bottom:10px;}
+.testi-text{font-family:'Barlow',sans-serif;font-weight:300;font-size:.9rem;line-height:1.7;color:rgba(245,240,235,.75);}
+.testi-author{margin-top:16px;display:flex;align-items:center;gap:12px;}
+.testi-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#000;flex-shrink:0;}
+.testi-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;}
+.testi-role{font-size:.65rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
+
+/* LOCATION */
+#location{background:var(--deep);padding:80px 24px;position:relative;overflow:hidden;}
+#location::after{content:'';position:absolute;bottom:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,98,0,.12),transparent 70%);pointer-events:none;}
+.location-grid{margin-top:32px;display:grid;grid-template-columns:1fr;gap:20px;}
+.info-block{background:var(--panel);border:1px solid var(--border);padding:20px;display:flex;align-items:flex-start;gap:14px;}
+.info-icon{width:38px;height:38px;background:rgba(255,98,0,.12);border:1px solid rgba(255,98,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-icon svg{width:18px;height:18px;stroke:var(--orange);stroke-width:1.75;fill:none;}
+.info-label{font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.info-value{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:600;letter-spacing:.04em;line-height:1.4;color:var(--white);}
+
+/* FINAL CTA */
+#final-cta{background:var(--black);padding:80px 24px;text-align:center;position:relative;overflow:hidden;}
+#final-cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,98,0,.1),transparent 70%);pointer-events:none;}
+.cta-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,12vw,5rem);line-height:.92;position:relative;z-index:2;}
+.cta-sub{font-size:.8rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-top:14px;position:relative;z-index:2;}
+.wa-btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;letter-spacing:.15em;text-transform:uppercase;padding:18px 36px;text-decoration:none;clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);margin-top:36px;position:relative;z-index:2;transition:all .25s;box-shadow:0 0 40px rgba(37,211,102,.2);}
+.wa-btn:hover{transform:translateY(-3px);box-shadow:0 8px 50px rgba(37,211,102,.35);}
+.wa-btn svg{width:22px;height:22px;}
+.wa-number{display:block;font-size:.65rem;letter-spacing:.2em;color:var(--muted);margin-top:16px;position:relative;z-index:2;}
+
+/* FOOTER */
+footer{background:var(--panel);border-top:1px solid var(--border);padding:28px 24px;display:flex;flex-direction:column;gap:12px;}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.15em;}
+.footer-logo span{color:var(--orange);}
+.footer-tagline{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);}
+.footer-divider{width:100%;height:1px;background:var(--border);}
+.footer-copy{font-size:.65rem;letter-spacing:.1em;color:var(--muted);line-height:1.6;}
+.footer-copy span{color:var(--gold);}
+
+/* FLOAT WA */
+.float-wa{position:fixed;bottom:24px;right:20px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.float-wa-bubble{background:rgba(8,8,8,.9);border:1px solid var(--border);color:var(--white);font-size:.65rem;letter-spacing:.1em;padding:8px 14px;backdrop-filter:blur(10px);animation:bubble-pulse 3s ease-in-out infinite;white-space:nowrap;}
+@keyframes bubble-pulse{0%,100%{opacity:.7;transform:translateY(0);}50%{opacity:1;transform:translateY(-3px);}}
+.float-wa-btn{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 24px rgba(37,211,102,.4);transition:transform .2s,box-shadow .2s;}
+.float-wa-btn:hover{transform:scale(1.1);box-shadow:0 8px 36px rgba(37,211,102,.55);}
+.float-wa-btn svg{width:28px;height:28px;}
+
+/* ANIMATIONS */
+.gsap-fade{opacity:0;transform:translateY(40px);}
+.gsap-scale{opacity:0;transform:scale(.92);}
+
+/* RESPONSIVE */
+@media(min-width:480px){
+  .gallery-track{grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:768px){
+  .services-grid{grid-template-columns:repeat(2,1fr);}
+  .gallery-track{grid-template-columns:repeat(3,1fr);}
+  .location-grid{grid-template-columns:repeat(2,1fr);}
+  .testi-grid{display:grid;grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:1024px){
+  .testi-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:380px){
+  .hero-title{font-size:3.8rem;}
+  .stat-number{font-size:1.8rem;}
+  .btn-primary,.btn-ghost{padding:14px 20px;font-size:.75rem;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<div class="float-wa">
+  <div class="float-wa-bubble">Start your journey</div>
+  <a href="https://wa.me/201095155111?text=I%20want%20to%20join%20Sparta%20Gym!" class="float-wa-btn" target="_blank" rel="noopener" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.523 5.852L.057 23.7l5.964-1.457A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.37l-.357-.212-3.706.905.943-3.609-.232-.369A9.818 9.818 0 1112 21.818z"/></svg>
+  </a>
+</div>
+
+<nav id="navbar">
+  <div class="nav-logo">SPARTA<span>·</span>GYM</div>
+  <a href="https://wa.me/201095155111?text=I%20want%20to%20join%20Sparta%20Gym!" class="nav-cta" target="_blank">Join Now</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <img
+    src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85"
+    class="hero-bg-img"
+    alt=""
+    loading="eager"
+    fetchpriority="high"
+  />
+  <div class="hero-bg-overlay"></div>
+  <canvas id="ember-canvas"></canvas>
+  <div class="ember-lines" id="ember-lines"></div>
+  <p class="hero-eyebrow" id="hero-eyebrow">Cairo's Premier Hardcore Gym</p>
+  <h1 class="hero-title">
+    <span class="line"><span>FORGED</span></span>
+    <span class="line"><span class="accent">IN</span></span>
+    <span class="line"><span class="gold">SPARTA</span></span>
+  </h1>
+  <div class="hero-divider" id="hero-divider"></div>
+  <p class="hero-sub" id="hero-sub">No excuses. No shortcuts.<br/>Only iron, sweat &amp; transformation.</p>
+  <div class="hero-actions" id="hero-actions">
+    <a href="https://wa.me/201095155111?text=I%20want%20to%20join%20Sparta%20Gym!" class="btn-primary" target="_blank">
+      <i data-lucide="zap"></i>
+      Start Today
+    </a>
+    <a href="#services" class="btn-ghost">Explore</a>
+  </div>
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<div id="stats">
+  <div class="stat-item"><span class="stat-number" data-target="12">0</span><span class="stat-label">Years Strong</span></div>
+  <div class="stat-item"><span class="stat-number" data-target="3000">0</span><span class="stat-label">Members Forged</span></div>
+  <div class="stat-item"><span class="stat-number" data-target="15">0</span><span class="stat-label">Elite Coaches</span></div>
+</div>
+
+<section id="manifesto">
+  <img
+    src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=1200&q=80"
+    class="manifesto-bg"
+    alt=""
+    loading="lazy"
+  />
+  <div class="manifesto-content">
+    <p class="section-eyebrow gsap-fade">Our Creed</p>
+    <blockquote class="manifesto-quote gsap-fade">Average people visit a gym.<br/><span class="highlight">Spartans are built</span><br/>in one.</blockquote>
+    <p class="manifesto-body gsap-fade">Since our founding, Sparta Gym has been the proving ground for Cairo's most dedicated athletes and warriors. We don't offer excuses. We offer results. Every rep, every set, every drop of sweat is a brick in your foundation.</p>
+    <div class="manifesto-tag gsap-fade"><div class="manifesto-tag-line"></div><span class="manifesto-tag-text">317A El-Tharwa El-Maadaniya St., Cairo</span></div>
+  </div>
+</section>
+
+<section id="services">
+  <p class="section-eyebrow gsap-fade">What We Offer</p>
+  <div class="reveal-block"><h2 class="section-title gsap-fade">TRAIN <span class="o">LIKE</span><br/>A <span class="g">WARRIOR</span></h2></div>
+  <div class="services-grid" id="services-grid">
+    <div class="service-card">
+      <span class="service-tag">Core</span>
+      <span class="service-icon"><i data-lucide="dumbbell"></i></span>
+      <div class="service-name">Weight Training</div>
+      <p class="service-desc">Premium free weights and machines. Build raw, functional strength in a space designed for serious lifting.</p>
+    </div>
+    <div class="service-card">
+      <span class="service-tag">Combat</span>
+      <span class="service-icon"><i data-lucide="swords"></i></span>
+      <div class="service-name">Boxing &amp; MMA</div>
+      <p class="service-desc">Ring conditioning, heavy bags, and combat training. Forge discipline and power with every round.</p>
+    </div>
+    <div class="service-card">
+      <span class="service-tag">Cardio</span>
+      <span class="service-icon"><i data-lucide="flame"></i></span>
+      <div class="service-name">HIIT &amp; Cardio Zone</div>
+      <p class="service-desc">High-intensity circuits built for maximum fat burn. No rest for the relentless — maximum output, minimum time.</p>
+    </div>
+    <div class="service-card">
+      <span class="service-tag">Guidance</span>
+      <span class="service-icon"><i data-lucide="target"></i></span>
+      <div class="service-name">Personal Coaching</div>
+      <p class="service-desc">Elite certified coaches who design custom programs and push you past every limit you thought you had.</p>
+    </div>
+    <div class="service-card">
+      <span class="service-tag">Fuel</span>
+      <span class="service-icon"><i data-lucide="leaf"></i></span>
+      <div class="service-name">Nutrition Planning</div>
+      <p class="service-desc">Customized meal strategies. Because the body you want is 70% what you eat. We make every macro count.</p>
+    </div>
+    <div class="service-card">
+      <span class="service-tag">Classes</span>
+      <span class="service-icon"><i data-lucide="users"></i></span>
+      <div class="service-name">Group Sessions</div>
+      <p class="service-desc">High-energy group workouts that combine competition and community. Push harder when you fight alongside warriors.</p>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="inner">
+    <p class="section-eyebrow gsap-fade">Proof in the Iron</p>
+    <div class="reveal-block"><h2 class="section-title gsap-fade">REAL <span class="o">TRANS</span><br/><span class="g">FORMATIONS</span></h2></div>
+    <p class="gallery-intro gsap-fade">Every body tells a story. These are Cairo's warriors — before, during, and after they chose Sparta.</p>
+  </div>
+  <div class="gallery-track" id="gallery-track"></div>
+</section>
+
+<section id="testimonials">
+  <p class="section-eyebrow gsap-fade">Brotherhood</p>
+  <div class="reveal-block"><h2 class="section-title gsap-fade">THEY <span class="o">CHOSE</span><br/><span class="g">SPARTA</span></h2></div>
+  <div class="testi-grid">
+    <div class="testi-card gsap-fade">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Walked in 22kg overweight with zero confidence. Eighteen months later I competed in my first physique show. Sparta didn't just change my body — it changed who I am."</p>
+      <div class="testi-author"><div class="testi-avatar">AK</div><div><div class="testi-name">Ahmed Kamel</div><div class="testi-role">Member since 2022 · Lost 22kg</div></div></div>
+    </div>
+    <div class="testi-card gsap-fade">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"The coaches here are ruthless in the best way. No fluff, no hand-holding. Just real programming and real results. Best investment I've ever made."</p>
+      <div class="testi-author"><div class="testi-avatar">SE</div><div><div class="testi-name">Sara El-Sayed</div><div class="testi-role">Member since 2021 · Coach's pick</div></div></div>
+    </div>
+    <div class="testi-card gsap-fade">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"جربت أكتر من نادي في القاهرة. مفيش حاجة زي سبارتا. الأجواء، التجهيزات، والمدربين — كل حاجة على مستوى آخر تماماً."</p>
+      <div class="testi-author"><div class="testi-avatar">MH</div><div><div class="testi-name">Mohamed Hassan</div><div class="testi-role">Member since 2020 · 4 years strong</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="location">
+  <p class="section-eyebrow gsap-fade">Find Us</p>
+  <div class="reveal-block"><h2 class="section-title gsap-fade">VISIT <span class="o">THE</span><br/><span class="g">ARENA</span></h2></div>
+  <div class="location-grid">
+    <div class="info-block gsap-fade">
+      <div class="info-icon"><i data-lucide="map-pin"></i></div>
+      <div><div class="info-label">Location</div><div class="info-value">317 A El-Tharwa El-Maadaniya St.<br/>Cairo, Egypt</div></div>
+    </div>
+    <div class="info-block gsap-fade">
+      <div class="info-icon"><i data-lucide="phone"></i></div>
+      <div><div class="info-label">Phone</div><div class="info-value"><a href="tel:+201095155111" style="color:inherit;text-decoration:none;">+20 10 95155111</a></div></div>
+    </div>
+    <div class="info-block gsap-fade">
+      <div class="info-icon"><i data-lucide="clock"></i></div>
+      <div><div class="info-label">Hours</div><div class="info-value">Sat–Thu: 7am – 12am<br/>Friday: 8am – 10pm</div></div>
+    </div>
+    <div class="info-block gsap-fade">
+      <div class="info-icon"><i data-lucide="message-circle"></i></div>
+      <div><div class="info-label">WhatsApp</div><div class="info-value"><a href="https://wa.me/201095155111" style="color:inherit;text-decoration:none;" target="_blank">Message us directly</a></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="final-cta">
+  <div class="reveal-block"><h2 class="cta-title gsap-fade">YOUR <span style="color:var(--orange)">LEGEND</span><br/>STARTS<br/><span style="color:var(--gold)">TODAY</span></h2></div>
+  <p class="cta-sub gsap-fade">Limited memberships available — Cairo's most elite gym</p>
+  <a href="https://wa.me/201095155111?text=I%20want%20to%20join%20Sparta%20Gym!" class="wa-btn gsap-scale" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.523 5.852L.057 23.7l5.964-1.457A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.37l-.357-.212-3.706.905.943-3.609-.232-.369A9.818 9.818 0 1112 21.818z"/></svg>
+    Chat on WhatsApp
+  </a>
+  <span class="wa-number">+20 10 95155111</span>
+</section>
+
+<footer>
+  <div class="footer-logo">SPARTA<span>·</span>GYM</div>
+  <div class="footer-tagline">Forged in Cairo. Built to Last.</div>
+  <div class="footer-divider"></div>
+  <div class="footer-copy">317 A El-Tharwa El-Maadaniya St., Cairo, Egypt<br/><span>+20 10 95155111</span> — All rights reserved &copy; 2024 Sparta Gym</div>
+</footer>
+
+<script>
+// CURSOR (desktop only)
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+if(cursor&&getComputedStyle(cursor).display!=='none'){
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function ac(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;cursor.style.left=mx+'px';cursor.style.top=my+'px';ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ac);})();
+}
+
+// EMBER CANVAS
+const canvas=document.getElementById('ember-canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+resize();window.addEventListener('resize',resize,{passive:true});
+const PARTS=[];
+function Pt(){
+  this.reset=function(){this.x=Math.random()*W;this.y=H+20;this.vx=(Math.random()-.5)*.6;this.vy=-(Math.random()*1.5+.8);this.life=Math.random()*.8+.2;this.decay=Math.random()*.004+.002;this.r=Math.random()*2.5+.5;this.gold=Math.random()>.65;};
+  this.reset();this.y=Math.random()*H;
+}
+for(let i=0;i<80;i++)PARTS.push(new Pt());
+function drawE(){
+  ctx.clearRect(0,0,W,H);
+  PARTS.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.life-=p.decay;
+    if(p.life<=0||p.y<-20)p.reset();
+    ctx.save();ctx.globalAlpha=p.life*.7;
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.5);
+    g.addColorStop(0,p.gold?'#ffd070':'#FF6200');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.5,0,Math.PI*2);ctx.fill();ctx.restore();
+  });requestAnimationFrame(drawE);
+}
+drawE();
+
+// EMBER LINES
+const lc=document.getElementById('ember-lines');
+for(let i=0;i<8;i++){const l=document.createElement('div');l.className='ember-line';l.style.left=(Math.random()*100)+'%';l.style.height=(Math.random()*120+80)+'px';l.style.animationDuration=(Math.random()*4+3)+'s';l.style.animationDelay=(Math.random()*5)+'s';lc.appendChild(l);}
+
+// NAVBAR
+const nb=document.getElementById('navbar');
+window.addEventListener('scroll',()=>{nb.classList.toggle('scrolled',window.scrollY>60);},{passive:true});
+
+// GSAP
+gsap.registerPlugin(ScrollTrigger);
+const tl=gsap.timeline({delay:.3});
+document.querySelectorAll('.hero-title .line span').forEach((el,i)=>{tl.to(el,{y:'0%',duration:.9,ease:'expo.out'},i*.12);});
+tl.to('#hero-eyebrow',{opacity:1,y:0,duration:.6,ease:'power3.out'},.1)
+  .to('#hero-divider',{width:'80px',duration:.8,ease:'expo.out'},.5)
+  .to('#hero-sub',{opacity:1,duration:.7,ease:'power2.out'},.65)
+  .to('#hero-actions',{opacity:1,duration:.6,ease:'power2.out'},.8);
+
+// COUNTERS
+document.querySelectorAll('.stat-number').forEach(el=>{
+  const target=+el.dataset.target;
+  ScrollTrigger.create({trigger:el,start:'top 90%',once:true,onEnter:()=>{
+    gsap.to({val:0},{val:target,duration:2,ease:'power2.out',onUpdate:function(){el.textContent=Math.ceil(this.targets()[0].val).toLocaleString()+'+';}}); }});
+});
+
+// SCROLL REVEALS
+gsap.utils.toArray('.gsap-fade').forEach(el=>{
+  gsap.fromTo(el,{opacity:0,y:50},{opacity:1,y:0,duration:.9,ease:'power3.out',
+    scrollTrigger:{trigger:el,start:'top 88%',once:true}});
+});
+gsap.utils.toArray('.gsap-scale').forEach(el=>{
+  gsap.fromTo(el,{opacity:0,scale:.88},{opacity:1,scale:1,duration:.8,ease:'back.out(1.4)',
+    scrollTrigger:{trigger:el,start:'top 88%',once:true}});
+});
+ScrollTrigger.create({trigger:'#services-grid',start:'top 82%',once:true,onEnter:()=>{
+  gsap.fromTo('#services-grid .service-card',{opacity:0,y:40},{opacity:1,y:0,stagger:.1,duration:.7,ease:'power3.out'});
+}});
+ScrollTrigger.create({trigger:'#gallery-track',start:'top 82%',once:true,onEnter:()=>{
+  gsap.fromTo('#gallery-track .gallery-item',{opacity:0,scale:.92},{opacity:1,scale:1,stagger:.08,duration:.7,ease:'power2.out'});
+}});
+
+// GALLERY — real Unsplash photos
+const GD=[
+  {label:'Power Building',sub:'8-week program',badge:'Strength',
+   img:'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=700&q=82'},
+  {label:'Fat Loss',sub:'12-week journey',badge:'Before/After',tall:true,
+   img:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=700&q=82'},
+  {label:'Boxing Conditioning',sub:'Combat fitness',badge:'MMA',
+   img:'https://images.unsplash.com/photo-1549476464-37392f717541?auto=format&fit=crop&w=700&q=82'},
+  {label:'Hypertrophy',sub:'Mass building',badge:'Gains',
+   img:'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?auto=format&fit=crop&w=700&q=82'},
+  {label:'Elite Athletes',sub:'Competition prep',badge:'Pro',
+   img:'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=82'},
+];
+const track=document.getElementById('gallery-track');
+GD.forEach(d=>{
+  const item=document.createElement('div');
+  item.className='gallery-item'+(d.tall?' tall':'');
+  item.innerHTML=`
+    <img src="${d.img}" alt="${d.label}" class="gfx" loading="lazy"/>
+    <div class="g-overlay">
+      <div class="g-label">${d.label}</div>
+      <div class="g-sub">${d.sub}</div>
+    </div>
+    <div class="g-badge">${d.badge}</div>`;
+  track.appendChild(item);
+});
+
+// LUCIDE ICONS
+if(typeof lucide!=='undefined')lucide.createIcons();
+</script>
+</body>
+</html>
